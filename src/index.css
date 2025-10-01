@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+
+body {
+  font-family: 'Roboto', 'Montserrat', sans-serif;
+}
+
+/* ========== Custom Fitness Theme ========== */
+:root {
+  --primary: #ef4444;     /* Fitness kırmızısı */
+  --secondary: #111827;   /* Siyah / koyu gri */
+  --background: #f9fafb;  /* Açık gri */
+  --accent: #22c55e;      /* Yeşil (başarı, aktif butonlar için) */
+  --text: #1f2937;        /* Normal metin */
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--primary);
+}
+.text-secondary {
+  color: var(--secondary);
+}
+.text-accent {
+  color: var(--accent);
+}
+
+/* Backgrounds */
+.bg-primary {
+  background-color: var(--primary);
+  color: white;
+}
+.bg-secondary {
+  background-color: var(--secondary);
+  color: white;
+}
+.bg-accent {
+  background-color: var(--accent);
+  color: white;
+}
+
+/* Buttons */
+.btn {
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: #dc2626; /* koyu kırmızı */
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+}
+.btn-secondary:hover {
+  background: #374151;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: white;
+}
+.btn-accent:hover {
+  background: #16a34a;
+}
+
+/* Inputs */
+.input {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 100%;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}

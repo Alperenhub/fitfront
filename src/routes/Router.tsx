@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter, Navigate, replace } from "react-router-dom";
 import App from "../App";
 import SelectRolePage from "../pages/SelectRolePage";
 import StudentLogin from "../pages/student/StudentLogin";
@@ -28,9 +28,11 @@ const router = createBrowserRouter([
             <Navigate to="/student/dashboard" replace />
           )
         ) : (
-          <SelectRolePage />
+          <Navigate to="/select-role" replace />
         ),
       },
+
+      { path: "/select-role", element: <SelectRolePage /> },
       { path: "student/login", element: <StudentLogin /> },
       { path: "student/register", element: <StudentRegister /> },
       { path: "trainer/login", element: <TrainerLogin /> },
