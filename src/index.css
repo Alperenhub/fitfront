@@ -10,7 +10,7 @@ body {
   --primary: #ef4444;     /* Fitness kırmızısı */
   --secondary: #111827;   /* Siyah / koyu gri */
   --background: #f9fafb;  /* Açık gri */
-  --accent: #22c55e;      /* Yeşil (başarı, aktif butonlar için) */
+  --accent: #828af4ff;      /* Yeşil (başarı, aktif butonlar için) */
   --text: #1f2937;        /* Normal metin */
 }
 

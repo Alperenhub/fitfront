@@ -16,13 +16,12 @@ import { useNavigate } from "react-router-dom";
 import CloseIcon from "@mui/icons-material/Close";
 import api from "../../utils/api";
 
-const steps = ["Account Info", "Personal Info", "Body Measurements", "Photos"];
+const steps = ["Hesap Bilgiler", "Kişisel Bilgiler", "Vücut Ölçüleri", "Fotoğraf Ekle"];
 
 export default function StudentRegister() {
   const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState<any>({
-    OtherPhotos: [],
-  });
+  const [formData, setFormData] = useState<any>({ OtherPhotos: [], ProfilePhotoUrl: null });
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleNext = async () => {
@@ -54,13 +53,15 @@ export default function StudentRegister() {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  // Fotoğraf silme
+  const removeProfilePhoto = () => {
+    setProfilePreview(null);
+    updateField("ProfilePhotoUrl", null);
+  };
+
   const removePhoto = (index: number) => {
     setFormData((prev: any) => ({
       ...prev,
-      OtherPhotos: prev.OtherPhotos.filter(
-        (_: File, i: number) => i !== index
-      ),
+      OtherPhotos: prev.OtherPhotos.filter((_ : File, i: number) => i !== index),
     }));
   };
 
@@ -75,126 +76,98 @@ export default function StudentRegister() {
           Student Register
         </Typography>
 
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+       <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
+  {steps.map((label, index) => (
+    <Step key={label}>
+      <StepLabel
+        StepIconProps={{
+          sx: {
+            "&.Mui-active": {
+              color: "#828af4ff", // aktif adım
+            },
+            "&.Mui-completed": {
+              color: "#828af4ff", // tamamlanmış adımlar
+            },
+            "&.MuiStepIcon-root": {
+              color: "#828af4ff", // varsayılan renk
+            },
+          },
+        }}
+        sx={{
+          "& .MuiStepLabel-label": {
+            color: "#828af4ff", // label yazısı
+            fontWeight: index === activeStep ? "bold" : "normal",
+          },
+        }}
+      >
+        {label}
+      </StepLabel>
+    </Step>
+  ))}
+</Stepper>
+
+
+
 
         {/* Step Content */}
         {activeStep === 0 && (
           <Stack spacing={2}>
-            <TextField
-              label="Email"
-              type="email"
-              fullWidth
-              onChange={(e) => updateField("Email", e.target.value)}
-            />
-            <TextField
-              label="Username"
-              fullWidth
-              onChange={(e) => updateField("Username", e.target.value)}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              fullWidth
-              onChange={(e) => updateField("Password", e.target.value)}
-            />
+            <TextField label="Email" type="email" fullWidth onChange={(e) => updateField("Email", e.target.value)} />
+            <TextField label="Kullanıcı adı" fullWidth onChange={(e) => updateField("Username", e.target.value)} />
+            <TextField label="Şifre" type="password" fullWidth onChange={(e) => updateField("Password", e.target.value)} />
           </Stack>
         )}
 
         {activeStep === 1 && (
-          <Stack spacing={2}>
-            <TextField
-              label="First Name"
-              fullWidth
-              onChange={(e) => updateField("FirstName", e.target.value)}
-            />
-            <TextField
-              label="Last Name"
-              fullWidth
-              onChange={(e) => updateField("LastName", e.target.value)}
-            />
-            <TextField
-              label="Age"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Age", e.target.value)}
-            />
-            <TextField
-              label="Weight"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Weight", e.target.value)}
-            />
-            <TextField
-              label="Height"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Height", e.target.value)}
-            />
-            <TextField
-              label="Gender"
-              fullWidth
-              onChange={(e) => updateField("Gender", e.target.value)}
-            />
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              onChange={(e) => updateField("Description", e.target.value)}
-            />
-          </Stack>
+          <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TextField label="İsim" onChange={(e) => updateField("FirstName", e.target.value)} />
+            <TextField label="Soyisim" onChange={(e) => updateField("LastName", e.target.value)} />
+            <TextField label="Yaş" type="number" onChange={(e) => updateField("Age", e.target.value)} />
+            <TextField label="Kilo" type="number" onChange={(e) => updateField("Weight", e.target.value)} />
+            <TextField label="Boy" type="number" onChange={(e) => updateField("Height", e.target.value)} />
+            <TextField label="Cinsiyet" onChange={(e) => updateField("Gender", e.target.value)} />
+            <TextField label="Bir rahatsızlığın varsa yazınız..." multiline rows={3} onChange={(e) => updateField("Description", e.target.value)} />
+          </Box>
         )}
 
         {activeStep === 2 && (
-          <Stack spacing={2}>
-            <TextField
-              label="Arm"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Arm", e.target.value)}
-            />
-            <TextField
-              label="Waist"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Waist", e.target.value)}
-            />
-            <TextField
-              label="Leg"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Leg", e.target.value)}
-            />
-            <TextField
-              label="Shoulder"
-              type="number"
-              fullWidth
-              onChange={(e) => updateField("Shoulder", e.target.value)}
-            />
-          </Stack>
+          <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TextField label="Kol" type="number" onChange={(e) => updateField("Arm", e.target.value)} />
+            <TextField label="Bel" type="number" onChange={(e) => updateField("Waist", e.target.value)} />
+            <TextField label="Bacak" type="number" onChange={(e) => updateField("Leg", e.target.value)} />
+            <TextField label="Omuz" type="number" onChange={(e) => updateField("Shoulder", e.target.value)} />
+          </Box>
         )}
 
         {activeStep === 3 && (
           <Stack spacing={2}>
+            {/* Profil fotoğrafı */}
             <Button variant="outlined" component="label">
-              Upload Profile Photo
+              Profil Fotoğrafı Yükleyin
               <input
                 type="file"
                 hidden
-                onChange={(e) =>
-                  updateField("ProfilePhotoUrl", e.target.files?.[0])
-                }
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    updateField("ProfilePhotoUrl", file);
+                    setProfilePreview(URL.createObjectURL(file));
+                  }
+                }}
               />
             </Button>
+            {profilePreview && (
+              <Box className="relative mt-2 inline-block">
+                <img src={profilePreview} alt="Profile Preview" className="w-[120px] h-[120px] rounded-lg object-cover" />
+                <IconButton size="small" className="absolute top-[-8px] right-[-8px] bg-white" onClick={removeProfilePhoto}>
+                  <Typography className="text-primary">Sil</Typography>
+                </IconButton>
+              </Box>
+            )}
 
+            {/* Diğer fotoğraflar */}
             <Button variant="outlined" component="label">
-              Upload Other Photos
+              Fotoğraf yükleyin
               <input
                 type="file"
                 hidden
@@ -202,16 +175,12 @@ export default function StudentRegister() {
                 onChange={(e) => {
                   const files = e.target.files;
                   if (files && files.length > 0) {
-                    updateField("OtherPhotos", [
-                      ...(formData.OtherPhotos || []),
-                      ...Array.from(files),
-                    ]);
+                    updateField("OtherPhotos", [...(formData.OtherPhotos || []), ...Array.from(files)]);
                   }
                 }}
               />
             </Button>
 
-            {/* Önizleme */}
             <Box
               sx={{
                 display: "flex",
@@ -264,35 +233,26 @@ export default function StudentRegister() {
 
         {/* Buttons */}
         <Box mt={4} display="flex" justifyContent="space-between">
-          <Button disabled={activeStep === 0} onClick={handleBack}>
-            Back
+          <Button sx={{color:"#828af4ff"}} disabled={activeStep === 0} onClick={handleBack}>
+            Geri
           </Button>
           {activeStep === steps.length - 1 ? (
-            <Button
-              variant="contained"
-              sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }}
-              onClick={handleNext}
-            >
-              Register
+            <Button variant="contained" sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }} onClick={handleNext}>
+              Kayıt ol
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }}
-              onClick={handleNext}
-            >
-              Next
+            <Button variant="contained" sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }} onClick={handleNext}>
+              İleri
             </Button>
           )}
         </Box>
 
-        <Button
-          fullWidth
-          sx={{ mt: 2 }}
-          onClick={() => navigate("/student/login")}
-        >
-          Go to Login
-        </Button>
+        {/* Go to Login sağ altta */}
+        <Box className="flex justify-end mt-2">
+          <Button sx={{color:"#828af4ff"}} className=" normal-case" onClick={() => navigate("/student/login")}>
+            Hesabın var mı?
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

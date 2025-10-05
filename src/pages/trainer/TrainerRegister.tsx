@@ -1,3 +1,4 @@
+// TrainerRegister.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,10 +10,12 @@ import {
   StepLabel,
   TextField,
   Typography,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { register } from "../../services/authService";
 
-const steps = ["Account Info", "Personal Info", "Extra Info"];
+const steps = ["Hesap bilgileri", "Kişisel bilgiler", "Ekstra bilgiler"];
 
 export default function TrainerRegisterPage() {
   const [activeStep, setActiveStep] = useState(0);
@@ -28,13 +31,14 @@ export default function TrainerRegisterPage() {
     awards: "",
     profileImage: null,
   });
-
+  const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: any) => {
     const { name, value, files } = e.target;
     if (files) {
       setFormData({ ...formData, [name]: files[0] });
+      setProfilePreview(URL.createObjectURL(files[0]));
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -68,134 +72,103 @@ export default function TrainerRegisterPage() {
     }
   };
 
+  const removeProfilePhoto = () => {
+    setProfilePreview(null);
+    setFormData({ ...formData, profileImage: null });
+  };
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 5 }}>
-        <Typography variant="h5" gutterBottom>
-          Trainer Register
+         <Typography
+          variant="h4"
+          className="text-primary"
+          sx={{ fontWeight: 700, mb: 4, textAlign: "center" }}
+        >
+          PT kayıt
         </Typography>
+
         <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-          {steps.map((label) => (
+          {steps.map((label, index) => (
             <Step key={label}>
-              <StepLabel>{label}</StepLabel>
+              <StepLabel
+                StepIconProps={{
+                  sx: {
+                    "&.Mui-active": { color: "#828af4ff" },
+                    "&.Mui-completed": { color: "#828af4ff" },
+                    "&.MuiStepIcon-root": { color: "#828af4ff" },
+                  },
+                }}
+                sx={{
+                  "& .MuiStepLabel-label": {
+                    color: "#828af4ff",
+                    fontWeight: index === activeStep ? "bold" : "normal",
+                  },
+                }}
+              >
+                {label}
+              </StepLabel>
             </Step>
           ))}
         </Stepper>
 
+        {/* Step Content */}
         {activeStep === 0 && (
           <Box>
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              margin="normal"
-              value={formData.email}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              label="Username"
-              name="username"
-              margin="normal"
-              value={formData.username}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              type="password"
-              label="Password"
-              name="password"
-              margin="normal"
-              value={formData.password}
-              onChange={handleChange}
-            />
+            <TextField fullWidth label="Email" name="email" margin="normal" value={formData.email} onChange={handleChange} />
+            <TextField fullWidth label="Kullanıcı adı" name="username" margin="normal" value={formData.username} onChange={handleChange} />
+            <TextField fullWidth type="Password" label="Şifre" name="password" margin="normal" value={formData.password} onChange={handleChange} />
           </Box>
         )}
 
         {activeStep === 1 && (
-          <Box>
-            <TextField
-              fullWidth
-              label="First Name"
-              name="firstName"
-              margin="normal"
-              value={formData.firstName}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              label="Last Name"
-              name="lastName"
-              margin="normal"
-              value={formData.lastName}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Age"
-              name="age"
-              margin="normal"
-              value={formData.age}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              label="Gender"
-              name="gender"
-              margin="normal"
-              value={formData.gender}
-              onChange={handleChange}
-            />
+          <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TextField label="İsim" name="firstName" margin="normal" value={formData.firstName} onChange={handleChange} />
+            <TextField label="Soyisim" name="lastName" margin="normal" value={formData.lastName} onChange={handleChange} />
+            <TextField label="Yaş" type="number" name="age" margin="normal" value={formData.age} onChange={handleChange} />
+            <TextField label="Cinsiyet" name="gender" margin="normal" value={formData.gender} onChange={handleChange} />
           </Box>
         )}
 
         {activeStep === 2 && (
-          <Box>
-            <TextField
-              fullWidth
-              label="Experience"
-              name="experience"
-              margin="normal"
-              value={formData.experience}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              label="Awards"
-              name="awards"
-              margin="normal"
-              value={formData.awards}
-              onChange={handleChange}
-            />
-            <Button variant="contained" component="label" sx={{ mt: 2 }}>
-              Upload Profile Image
-              <input
-                type="file"
-                name="profileImage"
-                hidden
-                onChange={handleChange}
-              />
-            </Button>
+          <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TextField label="Tecrübe" name="experience" margin="normal" value={formData.experience} onChange={handleChange} />
+            <TextField label="Ödüller" name="awards" margin="normal" value={formData.awards} onChange={handleChange} />
+
+            {/* Profil fotoğrafı */}
+            <Box className="mt-2">
+              <Button variant="outlined" component="label">
+                Profil Resmi Yükle
+                <input type="file" name="profileImage" hidden onChange={handleChange} />
+              </Button>
+              {profilePreview && (
+                <Box className="relative mt-2 inline-block">
+                  <img src={profilePreview} alt="Profile Preview" className="w-[120px] h-[120px] rounded-lg object-cover" />
+                  <IconButton size="small" className="absolute top-[-8px] right-[-8px] bg-white" onClick={removeProfilePhoto}>
+                    <CloseIcon fontSize="small" className="text-red-500" />
+                  </IconButton>
+                </Box>
+              )}
+            </Box>
           </Box>
         )}
 
+        {/* Buttons */}
         <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between" }}>
-          <Button disabled={activeStep === 0} onClick={handleBack}>
-            Back
+          <Button sx={{color: "#828af4ff"}} disabled={activeStep === 0} onClick={handleBack}>
+            Geri
           </Button>
-          <Button variant="contained" onClick={handleNext}>
-            {activeStep === steps.length - 1 ? "Register" : "Next"}
+          <Button variant="contained" sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }} onClick={handleNext}>
+            {activeStep === steps.length - 1 ? "Kayıt ol" : "İleri"}
           </Button>
         </Box>
 
-        <Button
-          fullWidth
-          sx={{ mt: 2 }}
-          onClick={() => navigate("/trainer/login")}
-        >
-          Go to Login
-        </Button>
+        {/* Go to Login sağ altta */}
+        <Box className="flex justify-end mt-2">
+          <Button sx={{color: "#828af4ff"}} className=" normal-case" onClick={() => navigate("/trainer/login")}>
+            Hesabın var mı?
+          </Button>
+        </Box>
       </Box>
     </Container>
   );
