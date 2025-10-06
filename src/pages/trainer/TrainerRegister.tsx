@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { register } from "../../services/authService";
@@ -126,7 +127,17 @@ export default function TrainerRegisterPage() {
             <TextField label="İsim" name="firstName" margin="normal" value={formData.firstName} onChange={handleChange} />
             <TextField label="Soyisim" name="lastName" margin="normal" value={formData.lastName} onChange={handleChange} />
             <TextField label="Yaş" type="number" name="age" margin="normal" value={formData.age} onChange={handleChange} />
-            <TextField label="Cinsiyet" name="gender" margin="normal" value={formData.gender} onChange={handleChange} />
+           
+            <TextField
+      select
+      label="Cinsiyet"
+      name="gender" margin="normal"
+      value={formData.gender} onChange={handleChange}
+    >
+      <MenuItem value="erkek">Erkek</MenuItem>
+      <MenuItem value="kadın">Kadın</MenuItem>
+    </TextField>
+           
           </Box>
         )}
 

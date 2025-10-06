@@ -10,6 +10,8 @@ import {
   Typography,
   Stack,
   IconButton,
+  MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -22,30 +24,45 @@ export default function StudentRegister() {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState<any>({ OtherPhotos: [], ProfilePhotoUrl: null });
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleNext = async () => {
-    if (activeStep === steps.length - 1) {
-      const fd = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "OtherPhotos" && Array.isArray(formData[key])) {
-          formData[key].forEach((file: File) => fd.append("OtherPhotos", file));
-        } else if (formData[key] !== undefined && formData[key] !== null) {
-          fd.append(key, formData[key]);
-        }
-      });
+const handleNext = async () => {
+  if (activeStep === steps.length - 1) {
+    setLoading(true);
 
-      try {
-        await api.post("/Student/register", fd);
-        navigate("/student/login");
-      } catch (err) {
-        console.error(err);
-        alert("Register failed");
+    const fd = new FormData();
+    Object.keys(formData).forEach((key) => {
+      if (key === "OtherPhotos" && Array.isArray(formData[key])) {
+        formData[key].forEach((file: File) => fd.append("OtherPhotos", file));
+      } else if (formData[key] !== undefined && formData[key] !== null) {
+        fd.append(key, formData[key]);
       }
-    } else {
-      setActiveStep((prev) => prev + 1);
+    });
+
+    try {
+      const res = await api.post("/Student/register", fd);
+      const { accessToken } = res.data;
+
+      // access token'ı localStorage'a kaydet
+      localStorage.setItem("accessToken", accessToken);
+
+      // refresh token artık cookie'de backend tarafından set ediliyor
+      // İsteğe bağlı: kullanıcıyı yönlendirme
+      navigate("/student/login"); // istersen login sayfasına yönlendirebilirsin
+    } catch (err) {
+      console.error(err);
+      alert("Register failed");
+    } finally {
+      setLoading(false);
     }
-  };
+  } else {
+    setActiveStep((prev) => prev + 1);
+  }
+};
+
+
 
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
@@ -123,19 +140,29 @@ export default function StudentRegister() {
             <TextField label="İsim" onChange={(e) => updateField("FirstName", e.target.value)} />
             <TextField label="Soyisim" onChange={(e) => updateField("LastName", e.target.value)} />
             <TextField label="Yaş" type="number" onChange={(e) => updateField("Age", e.target.value)} />
-            <TextField label="Kilo" type="number" onChange={(e) => updateField("Weight", e.target.value)} />
-            <TextField label="Boy" type="number" onChange={(e) => updateField("Height", e.target.value)} />
-            <TextField label="Cinsiyet" onChange={(e) => updateField("Gender", e.target.value)} />
+            <TextField label="Kilo(kg)" type="number" onChange={(e) => updateField("Weight", e.target.value)} />
+            <TextField label="Boy(cm)" type="number" onChange={(e) => updateField("Height", e.target.value)} />
+            
+             <TextField
+      select
+      label="Cinsiyet"
+      defaultValue=""
+      onChange={(e) => updateField("Gender", e.target.value)}
+    >
+      <MenuItem value="erkek">Erkek</MenuItem>
+      <MenuItem value="kadın">Kadın</MenuItem>
+    </TextField>
+
             <TextField label="Bir rahatsızlığın varsa yazınız..." multiline rows={3} onChange={(e) => updateField("Description", e.target.value)} />
           </Box>
         )}
 
         {activeStep === 2 && (
           <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TextField label="Kol" type="number" onChange={(e) => updateField("Arm", e.target.value)} />
-            <TextField label="Bel" type="number" onChange={(e) => updateField("Waist", e.target.value)} />
-            <TextField label="Bacak" type="number" onChange={(e) => updateField("Leg", e.target.value)} />
-            <TextField label="Omuz" type="number" onChange={(e) => updateField("Shoulder", e.target.value)} />
+            <TextField label="Kol(cm)" type="number" onChange={(e) => updateField("Arm", e.target.value)} />
+            <TextField label="Bel(cm)" type="number" onChange={(e) => updateField("Waist", e.target.value)} />
+            <TextField label="Bacak(cm)" type="number" onChange={(e) => updateField("Leg", e.target.value)} />
+            <TextField label="Omuz(cm)" type="number" onChange={(e) => updateField("Shoulder", e.target.value)} />
           </Box>
         )}
 
@@ -232,20 +259,36 @@ export default function StudentRegister() {
         )}
 
         {/* Buttons */}
-        <Box mt={4} display="flex" justifyContent="space-between">
-          <Button sx={{color:"#828af4ff"}} disabled={activeStep === 0} onClick={handleBack}>
-            Geri
-          </Button>
-          {activeStep === steps.length - 1 ? (
-            <Button variant="contained" sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }} onClick={handleNext}>
-              Kayıt ol
-            </Button>
-          ) : (
-            <Button variant="contained" sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }} onClick={handleNext}>
-              İleri
-            </Button>
-          )}
-        </Box>
+       <Box mt={4} display="flex" justifyContent="space-between">
+  <Button
+    sx={{ color: "#828af4ff" }}
+    disabled={activeStep === 0 || loading} // loading sırasında geri de disable
+    onClick={handleBack}
+  >
+    Geri
+  </Button>
+
+  {activeStep === steps.length - 1 ? (
+    <Button
+      variant="contained"
+      sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }}
+      onClick={handleNext}
+      disabled={loading}
+    >
+      {loading ? <CircularProgress size={24} color="inherit" /> : "Kayıt ol"}
+    </Button>
+  ) : (
+    <Button
+      variant="contained"
+      sx={{ bgcolor: "var(--primary)", "&:hover": { bgcolor: "#dc2626" } }}
+      onClick={handleNext}
+      disabled={loading} // ileri butonunu da loading sırasında disable edelim
+    >
+      {loading ? <CircularProgress size={24} color="inherit" /> : "İleri"}
+    </Button>
+  )}
+</Box>
+
 
         {/* Go to Login sağ altta */}
         <Box className="flex justify-end mt-2">
