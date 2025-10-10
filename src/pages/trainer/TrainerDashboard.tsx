@@ -17,6 +17,7 @@ import { useNavigate } from "react-router";
 import { validateTrainerCode } from "../../services/trainerCodeService";
 import type { ITrainerCodeResponse } from "../../Interfaces/ITrainerCode";
 import api from "../../utils/api";
+import WorkoutPlanner from "./WorkoutPlanner";
 
 export default function TrainerDashboard() {
   const navigate = useNavigate();
@@ -25,24 +26,36 @@ export default function TrainerDashboard() {
   const [code, setCode] = useState("");
   const [codeData, setCodeData] = useState<ITrainerCodeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [allExercises, setAllExercises] = useState<{ id: number; name: string }[]>([]);
 
-useEffect(() => {
-  const fetchActiveCode = async () => {
-    try {
-      const res = await api.get<ITrainerCodeResponse>("/Trainer/active-code");
-      if (res.data) {
-        setCodeData(res.data);
-        setCode(res.data.code); // input alanına da yaz
-        setError(null); // eski error varsa temizle
+  useEffect(() => {
+    const fetchActiveCode = async () => {
+      try {
+        const res = await api.get<ITrainerCodeResponse>("/Trainer/active-code");
+        if (res.data) {
+          setCodeData(res.data);
+          setCode(res.data.code); // input alanına da yaz
+          setError(null);
+        }
+      } catch (err) {
+        console.log("Henüz aktif bir kod yok.");
+        setCodeData(null);
       }
-    } catch (err) {
-      console.log("Henüz aktif bir kod yok.");
-      setCodeData(null);
-    }
-  };
-  fetchActiveCode();
-}, []);
+    };
 
+    const fetchExercises = async () => {
+      try {
+        const res = await api.get<{ id: number; name: string }[]>("/Exercise/all");
+        setAllExercises(res.data || []);
+      } catch (err) {
+        console.error("Egzersizler alınamadı:", err);
+      }
+    };
+
+    fetchActiveCode();
+    fetchExercises();
+  }, []);
+  
 
   const handleSubmit = async () => {
     try {
@@ -71,7 +84,7 @@ useEffect(() => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 10 }}>
+    <Container maxWidth="lg" sx={{ mt: 10 }}>
       <Typography variant="h4" gutterBottom>
         Welcome, Trainer!
       </Typography>
@@ -96,14 +109,15 @@ useEffect(() => {
 
       {codeData && (
         <Box mt={3} mb={2}>
-    <Typography variant="h6">
-      Kod: {codeData.code} | Kota: {codeData.quota} | Bitiş Tarihi: {codeData.expiresAt ? new Date(codeData.expiresAt).toLocaleDateString() : "-"}
-    </Typography>
+          <Typography variant="h6">
+            Kod: {codeData.code} | Kota: {codeData.quota} | Bitiş Tarihi:{" "}
+            {codeData.expiresAt ? new Date(codeData.expiresAt).toLocaleDateString() : "-"}
+          </Typography>
 
-          {/* Kodu kullanan öğrencileri göster */}
           <Typography variant="h6" sx={{ mb: 1 }}>
             Bu kodu kullanan öğrenciler:
           </Typography>
+
           {codeData.students && codeData.students.length > 0 ? (
             <Table>
               <TableHead>
@@ -126,20 +140,30 @@ useEffect(() => {
               </TableBody>
             </Table>
           ) : (
-            
             <Typography>Henüz öğrenci yok.</Typography>
           )}
         </Box>
       )}
 
-      <Button
-        onClick={logout}
-        variant="contained"
-        color="error"
-        sx={{ mt: 4 }}
-      >
+      {/* Logout Button */}
+      <Button onClick={logout} variant="contained" color="error" sx={{ mt: 4 }}>
         Çıkış Yap
       </Button>
+
+      {/* Workout Planner */}
+      {codeData && codeData.students && codeData.students.length > 0 && (
+        <Box mt={5}>
+         <WorkoutPlanner
+  students={codeData.students}
+  allExercises={allExercises.map((ex: any) => ({
+    ...ex,
+    bodyPart: ex.bodyPart || "Unknown",
+    notes: "",
+  }))}
+/>
+
+        </Box>
+      )}
     </Container>
   );
 }

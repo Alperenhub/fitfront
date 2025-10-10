@@ -16,7 +16,7 @@ export const login = async (role: "Trainer" | "Student", username: string, passw
 
   // backend'den sadece accessToken gelecek (refresh cookie’de zaten var)
   accessToken = response.data.accessToken;
-  localStorage.setItem("accessToken", accessToken);
+  localStorage.setItem("token", accessToken);
   localStorage.setItem("role", response.data.role);
   localStorage.setItem("username", response.data.username);
 

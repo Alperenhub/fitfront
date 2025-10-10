@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, replace } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "../App";
 import SelectRolePage from "../pages/SelectRolePage";
 import StudentLogin from "../pages/student/StudentLogin";
@@ -11,7 +11,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLogin from "../pages/admin/AdminLogin";
 
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("accessToken");
 const role = localStorage.getItem("role")?.toLowerCase(); // normalize
 
 const router = createBrowserRouter([

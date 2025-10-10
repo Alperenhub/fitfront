@@ -20,13 +20,16 @@ export default function TrainerLogin() {
 
   const handleLogin = async () => {
     try {
-      const data = await login("Trainer", username, password);
+     const data = await login("Trainer", username, password);
 
-      if (data.role?.toLowerCase() === "trainer") {
-        navigate("/trainer/dashboard");
-      } else {
-        alert("Bu kullanıcı trainer değil!");
-      }
+// data.role backend’den gelmiyorsa localStorage’dan oku
+const role = data.role || localStorage.getItem("role");
+
+if (role?.toLowerCase() === "trainer") {
+  navigate("/trainer/dashboard");
+} else {
+  alert("Bu kullanıcı trainer değil!");
+}
     } catch (err: any) {
       setPassword("");
       toast.error("Kullanıcı adı veya şifre hatalı");
