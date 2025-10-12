@@ -1,17 +1,17 @@
-// StudentDashboard.tsx
 import { useState, useEffect } from "react";
 import { Button, TextField, Typography, Box, Container } from "@mui/material";
 import api from "../../utils/api";
 import { handleLogout } from "../../functions/Logout";
 import { useNavigate } from "react-router";
 import StudentPlanWithCalendar from "./StudentPlanWithCalendar";
-import {jwtDecode} from "jwt-decode";
 
 type Exercise = {
   id: number;
   name: string;
-  notes: string;
+  notes?: string;
   videoUrl?: string;
+  repetitions?: number;
+  sets?: number;
 };
 
 type DayPlan = {
@@ -20,6 +20,7 @@ type DayPlan = {
 };
 
 type WorkoutPlan = {
+  id: number;
   title: string;
   description: string;
   plan: DayPlan[];
@@ -31,38 +32,41 @@ export default function StudentDashboard() {
 
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
-  const [plan, setPlan] = useState<WorkoutPlan | null>(null);
-
-  // Token’dan öğrenci ID’si alalım
-  const getStudentId = () => {
-    const token = localStorage.getItem("studentToken");
-    if (!token) return null;
-    const decoded: any = jwtDecode(token);
-    return decoded.nameid;
-  };
+  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPlan = async () => {
-      const studentId = getStudentId();
-      if (!studentId) return;
-
+    const fetchPlans = async () => {
+      setLoading(true);
       try {
-        const res = await api.get(`/WorkoutPlan/student/${studentId}`);
-        if (res.data && res.data.length > 0) {
-          const firstPlan = res.data[0]; // ilk planı alıyoruz
-          setPlan({
-            title: firstPlan.title,
-            description: firstPlan.description,
-            plan: firstPlan.exercisesGroupedByDay || firstPlan.plan || [], 
-            // backend planı günlere göre döndürüyorsa: exercisesGroupedByDay
-          });
+        console.log("📦 Planlar getiriliyor...");
+        const res = await api.get("/WorkoutPlan/my-plans");
+        console.log("✅ API yanıtı:", res.data);
+
+        // Backend "Henüz plan yok" mesajı dönerse
+        if (res.data?.message === "Henüz plan yok.") {
+          setPlans([]);
+        } else if (Array.isArray(res.data)) {
+          setPlans(
+            res.data.map((p: any) => ({
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              plan: p.plan || [],
+            }))
+          );
+        } else {
+          console.warn("⚠️ Plan listesi beklenmedik formatta:", res.data);
+          setPlans([]);
         }
-      } catch (err) {
-        console.error("Plan alınamadı", err);
+      } catch (err: any) {
+        console.error("❌ Planlar alınamadı:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchPlan();
+    fetchPlans();
   }, []);
 
   const joinTrainer = async () => {
@@ -72,12 +76,16 @@ export default function StudentDashboard() {
     }
 
     try {
+      console.log("🔑 Trainer join isteği gönderiliyor:", code);
       const res = await api.post("/Student/join", { code: code.trim() });
+      console.log("✅ Trainer join yanıtı:", res.data);
+
       setMessage(
         `Başarıyla eşleştirildiniz! TrainerId: ${res.data.trainerId}. Kalan kota: ${res.data.remainingQuota}`
       );
       setCode("");
     } catch (err: any) {
+      console.error("❌ Trainer join hatası:", err);
       if (err.response?.data?.message) {
         setMessage(err.response.data.message);
       } else if (err.response?.data?.errors) {
@@ -93,6 +101,7 @@ export default function StudentDashboard() {
     <Container maxWidth="lg" sx={{ mt: 5 }}>
       <Typography variant="h4">Welcome, Student!</Typography>
 
+      {/* Trainer join alanı */}
       <Box mt={3} mb={3}>
         <TextField
           fullWidth
@@ -105,30 +114,35 @@ export default function StudentDashboard() {
           Join
         </Button>
         {message && (
-          <Typography
-            sx={{ mt: 2, color: message.includes("Başarı") ? "green" : "red" }}
-          >
+          <Typography sx={{ mt: 2, color: message.includes("Başarı") ? "green" : "red" }}>
             {message}
           </Typography>
         )}
       </Box>
 
+      {/* Plan listesi */}
+      <Box mt={5}>
+        {loading ? (
+          <Typography sx={{ mt: 2, color: "gray" }}>📦 Planlar yükleniyor...</Typography>
+        ) : plans.length > 0 ? (
+          plans.map((plan) => (
+            <StudentPlanWithCalendar
+              key={plan.id}
+              title={plan.title}
+              description={plan.description}
+              plan={plan.plan}
+            />
+          ))
+        ) : (
+          <Typography sx={{ mt: 2, color: "gray" }}>Henüz plan yok</Typography>
+        )}
+      </Box>
+
+      {/* Logout butonu */}
       <Box mt={5}>
         <Button variant="contained" color="error" fullWidth onClick={logout}>
           Çıkış Yap
         </Button>
-      </Box>
-
-      <Box mt={5}>
-        {plan ? (
-          <StudentPlanWithCalendar
-            title={plan.title}
-            description={plan.description}
-            plan={plan.plan}
-          />
-        ) : (
-          <Typography sx={{ mt: 2 }}>Henüz plan yok</Typography>
-        )}
       </Box>
     </Container>
   );

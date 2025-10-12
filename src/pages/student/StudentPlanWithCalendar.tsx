@@ -1,3 +1,4 @@
+//StudentPlanWithCalendar.tsx
 import { useState } from "react";
 import {
   Box,
@@ -13,14 +14,14 @@ import CloseIcon from "@mui/icons-material/Close";
 type Exercise = {
   id: number;
   name: string;
-  notes: string;
-  videoUrl?: string; // Hareket animasyonu/video linki
+  notes?: string;
+  videoUrl?: string;
   repetitions?: number;
   sets?: number;
 };
 
 type DayPlan = {
-  day: string;
+  day: string; // Pazartesi, Salı, ...
   exercises: Exercise[];
 };
 
@@ -30,12 +31,19 @@ type WorkoutPlanProps = {
   plan: DayPlan[];
 };
 
-export default function StudentPlanWithCalendar({
-  title,
-  description,
-  plan,
-}: WorkoutPlanProps) {
+const WEEK_DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+
+export default function StudentPlanWithCalendar({ title, description, plan }: WorkoutPlanProps) {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+
+  // Planı hafta günlerine göre map'le, olmayan günleri boş bırak
+  const weekPlan = WEEK_DAYS.map((day) => {
+    const dayPlan = plan.find((p) => p.day === day);
+    return {
+      day,
+      exercises: dayPlan?.exercises || []
+    };
+  });
 
   return (
     <Box sx={{ mb: 4 }}>
@@ -43,13 +51,14 @@ export default function StudentPlanWithCalendar({
       <Typography sx={{ mb: 2 }}>{description}</Typography>
 
       <Grid container spacing={2}>
-        {plan.map((dayPlan) => (
-          <Grid sx={{xs:12, sm:6, md:3}} key={dayPlan.day}>
+        {weekPlan.map((dayPlan) => (
+          <Grid key={dayPlan.day} sx={{xs:12,sm:6,md:3}}>
             <Card sx={{ minHeight: 150 }}>
               <CardContent>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
                   {dayPlan.day}
                 </Typography>
+
                 {dayPlan.exercises.length === 0 ? (
                   <Typography sx={{ fontStyle: "italic" }}>Egzersiz yok</Typography>
                 ) : (
@@ -63,7 +72,8 @@ export default function StudentPlanWithCalendar({
                       }}
                       onClick={() => ex.videoUrl && setSelectedExercise(ex)}
                     >
-                      {ex.name} ({ex.notes})
+                      {ex.name} (
+                      {ex.repetitions ?? 0}x{ex.sets ?? 0} - {ex.notes ?? "Set x tekrar y"})
                     </Typography>
                   ))
                 )}
